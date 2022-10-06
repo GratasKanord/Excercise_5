@@ -1,0 +1,70 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+Adafruit_BME280 bme; 
+
+struct Button {
+	const uint8_t PIN;
+	uint32_t numberKeyPresses;
+	bool pressed;
+};
+
+Button button = {35, 0, false};
+
+unsigned long button_time = 0;  
+unsigned long last_button_time = 0;
+
+void IRAM_ATTR isr() {
+  if (button_time - last_button_time > 150)
+  {
+    button.numberKeyPresses++;
+    button.pressed = true;
+
+    // int val = 20;
+    // switch(true){
+    //   case  :
+    //     Serial.print("Less than 10");
+    //     break;  
+    //   case  :
+    //     Serial.print("More than 21");
+    //     break;  
+    //   case  :
+    //     Serial.print("Less than 22");
+    //     break;  
+    // }    
+    
+    last_button_time = button_time;
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+	pinMode(button.PIN, INPUT_PULLUP);
+	attachInterrupt(button.PIN, isr, FALLING);
+}
+
+void loop() { 
+    int val = 10;   
+    int mapVal = (val, 0, 20, 0, 2);
+    Serial.println(mapVal);
+    delay(2000);
+}
+
+void printValues() {
+  Serial.print("Temperature = ");
+  Serial.print(bme.readTemperature());
+  Serial.println(" *C");
+  
+  Serial.print("Pressure = ");
+  Serial.print(bme.readPressure() / 100.0F);
+  Serial.println(" hPa");
+
+  Serial.print("Humidity = ");
+  Serial.print(bme.readHumidity());
+  Serial.println(" %");
+
+  Serial.println();
+} 
